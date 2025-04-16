@@ -40,36 +40,40 @@ function compareAndCreateVulReports() {
     "vul30", "vul31", "vul32", "vul33", "vul34", "vul35", "vul36"
   ];  // Add your vulnerability keywords here
   
-  // Loop through each vulnerability and create a report
+  // Step 1: Create index for Detail Data and Last Week Data
+  const indexDetailData = createIndex(dataDetailData);
+  const indexLastWeekData = createIndex(dataLastWeekData);
+  
+  // Step 2: Loop through each vulnerability and create a report
   vulnerabilities.forEach(function(vul) {
     Logger.log('Processing vulnerability: ' + vul);
     
-    // Step 1: Filter Detail Data by the keyword in Plugin name (this simulates your filter search)
-    const filteredDetailData = dataDetailData.filter(row => row[0].toLowerCase().includes(vul.toLowerCase())); // Filter by Plugin name column (index 0)
-    const filteredLastWeekData = dataLastWeekData.filter(row => row[0].toLowerCase().includes(vul.toLowerCase())); // Same for Last Week Data
+    // Step 3: Filter the data by the keyword in Plugin name (simulate manual filter)
+    const filteredDetailData = indexDetailData[vul.toLowerCase()] || [];  // Filtered data for the keyword
+    const filteredLastWeekData = indexLastWeekData[vul.toLowerCase()] || [];  // Filtered data for the keyword
     
     // Log number of findings
     Logger.log('Found ' + filteredDetailData.length + ' instances in Detail Data for ' + vul);
     Logger.log('Found ' + filteredLastWeekData.length + ' instances in Last Week Data for ' + vul);
     
-    // Step 2: Create a new Google Sheet for this vulnerability
+    // Step 4: Create a new Google Sheet for this vulnerability
     const newVulSheet = SpreadsheetApp.create(vul + '_' + currentDate);
     Logger.log('Created a new sheet for vulnerability: ' + vul);
     
     const oldSheet = newVulSheet.insertSheet('Old');
     const newSheet = newVulSheet.insertSheet('New');
     
-    // Step 3: Add headers to the new sheets (using the headers from Detail Data)
+    // Step 5: Add headers to the new sheets (using the headers from Detail Data)
     oldSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
     newSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
     
     const oldData = [];
     const newData = [];
     
-    // Step 4: Compare filtered data between Detail Data and Last Week Data
+    // Step 6: Compare filtered data between Detail Data and Last Week Data
     const lastWeekUniqueIds = filteredLastWeekData.map(row => row[1]); // Assuming "Unique Identifier w Repository & Port" is in column 2 (index 1)
     
-    // Step 5: Compare and categorize as old or new data
+    // Step 7: Compare and categorize as old or new data
     filteredDetailData.forEach(function(row) {
       const pluginName = row[0];  // Plugin name
       const uniqueId = row[1];  // Unique Identifier w Repository & Port
@@ -86,19 +90,19 @@ function compareAndCreateVulReports() {
     // Log progress
     Logger.log('Comparison complete for vulnerability: ' + vul);
     
-    // Step 6: Paste old data into the "Old" sheet
+    // Step 8: Paste old data into the "Old" sheet
     if (oldData.length > 0) {
       oldSheet.getRange(2, 1, oldData.length, oldData[0].length).setValues(oldData);
       Logger.log('Pasted old data into the "Old" sheet.');
     }
     
-    // Step 7: Paste new data into the "New" sheet
+    // Step 9: Paste new data into the "New" sheet
     if (newData.length > 0) {
       newSheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
       Logger.log('Pasted new data into the "New" sheet.');
     }
     
-    // Step 8: Move the created sheet to the specified folder in Google Drive
+    // Step 10: Move the created sheet to the specified folder in Google Drive
     const file = DriveApp.getFileById(newVulSheet.getId());
     folder.createFile(file); // Move the file to the specific folder
     file.setTrashed(true); // Delete the original file from the root folder
@@ -110,4 +114,17 @@ function compareAndCreateVulReports() {
   
   // Log completion of the entire process
   Logger.log('Process completed. All reports generated and stored in the specified Google Drive folder.');
+}
+
+// Step 1: Create an index for data based on Plugin name
+function createIndex(data) {
+  const index = {};
+  for (let i = 1; i < data.length; i++) {  // Skip the header row
+    const pluginName = data[i][0].toLowerCase(); // Plugin name column (index 0)
+    if (!index[pluginName]) {
+      index[pluginName] = [];
+    }
+    index[pluginName].push(data[i]);
+  }
+  return index;
 }
