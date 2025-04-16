@@ -48,7 +48,7 @@ function compareAndCreateVulReports() {
     const filteredDetailData = filterDataByKeyword(dataDetailData, vul); // Filter by Plugin name column (index 3)
     const filteredLastWeekData = filterDataByKeyword(dataLastWeekData, vul); // Same for Last Week Data
     
-    // Log number of findings
+    // Log number of findings for debugging purposes
     Logger.log('Found ' + filteredDetailData.length + ' instances in Detail Data for ' + vul);
     Logger.log('Found ' + filteredLastWeekData.length + ' instances in Last Week Data for ' + vul);
     
@@ -83,8 +83,9 @@ function compareAndCreateVulReports() {
       }
     });
     
-    // Log progress
-    Logger.log('Comparison complete for vulnerability: ' + vul);
+    // Log progress before writing to the new sheets
+    Logger.log('Old data length for ' + vul + ': ' + oldData.length);
+    Logger.log('New data length for ' + vul + ': ' + newData.length);
     
     // Step 7: Paste old data into the "Old" sheet
     if (oldData.length > 0) {
@@ -96,6 +97,8 @@ function compareAndCreateVulReports() {
     if (newData.length > 0) {
       newSheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
       Logger.log('Pasted new data into the "New" sheet.');
+    } else {
+      Logger.log('No new data found for ' + vul);
     }
     
     // Step 9: Move the created sheet to the specified folder in Google Drive
