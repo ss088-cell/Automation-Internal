@@ -45,8 +45,8 @@ function compareAndCreateVulReports() {
     Logger.log('Processing vulnerability: ' + vul);
     
     // Filter data for the current vulnerability (e.g., "kb", "vul1", "vul2", etc.) in 'Detail Data'
-    const vulDataDetail = dataDetailData.filter(row => row[0].includes(vul)); // Search for common word in Plugin Name column (index 0)
-    const vulDataLastWeek = dataLastWeekData.filter(row => row[0].includes(vul)); // Same for Last Week Data
+    const vulDataDetail = dataDetailData.filter(row => row[0].toLowerCase().includes(vul)); // Search for common word in Plugin name column (index 0)
+    const vulDataLastWeek = dataLastWeekData.filter(row => row[0].toLowerCase().includes(vul)); // Same for Last Week Data
     
     // Log number of findings
     Logger.log('Found ' + vulDataDetail.length + ' instances in Detail Data for ' + vul);
@@ -74,7 +74,7 @@ function compareAndCreateVulReports() {
     
     // Loop through Detail Data and compare with Last Week Data
     for (let i = 0; i < vulDataDetail.length; i++) {
-      const pluginName = vulDataDetail[i][0]; // Assuming "Plugin Name" is in column 1 (index 0)
+      const pluginName = vulDataDetail[i][0]; // Assuming "Plugin name" is in column 1 (index 0)
       const uniqueId = vulDataDetail[i][1];  // Assuming "Unique Identifier w Repository & Port" is in column 2 (index 1)
       
       if (lastWeekUniqueIds.includes(uniqueId)) {
