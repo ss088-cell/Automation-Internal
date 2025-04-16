@@ -44,64 +44,61 @@ function compareAndCreateVulReports() {
   vulnerabilities.forEach(function(vul) {
     Logger.log('Processing vulnerability: ' + vul);
     
-    // Filter data for the current vulnerability (e.g., "kb", "vul1", "vul2", etc.) in 'Detail Data'
-    const vulDataDetail = dataDetailData.filter(row => row[0].toLowerCase().includes(vul)); // Search for common word in Plugin name column (index 0)
-    const vulDataLastWeek = dataLastWeekData.filter(row => row[0].toLowerCase().includes(vul)); // Same for Last Week Data
+    // Step 1: Filter Detail Data by the keyword in Plugin name (this simulates your filter search)
+    const filteredDetailData = dataDetailData.filter(row => row[0].toLowerCase().includes(vul.toLowerCase())); // Filter by Plugin name column (index 0)
+    const filteredLastWeekData = dataLastWeekData.filter(row => row[0].toLowerCase().includes(vul.toLowerCase())); // Same for Last Week Data
     
     // Log number of findings
-    Logger.log('Found ' + vulDataDetail.length + ' instances in Detail Data for ' + vul);
-    Logger.log('Found ' + vulDataLastWeek.length + ' instances in Last Week Data for ' + vul);
+    Logger.log('Found ' + filteredDetailData.length + ' instances in Detail Data for ' + vul);
+    Logger.log('Found ' + filteredLastWeekData.length + ' instances in Last Week Data for ' + vul);
     
-    // Create a new Google Sheet for this vulnerability
+    // Step 2: Create a new Google Sheet for this vulnerability
     const newVulSheet = SpreadsheetApp.create(vul + '_' + currentDate);
     Logger.log('Created a new sheet for vulnerability: ' + vul);
     
     const oldSheet = newVulSheet.insertSheet('Old');
     const newSheet = newVulSheet.insertSheet('New');
     
-    // Add headers to the new sheets (assuming same headers as in the Detail Data sheet)
+    // Step 3: Add headers to the new sheets (using the headers from Detail Data)
     oldSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
     newSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
     
     const oldData = [];
     const newData = [];
     
-    // Compare Detail Data and Last Week Data for this vulnerability
-    const lastWeekUniqueIds = vulDataLastWeek.map(row => row[1]); // Assuming "Unique Identifier w Repository & Port" is in column 2 (index 1)
+    // Step 4: Compare filtered data between Detail Data and Last Week Data
+    const lastWeekUniqueIds = filteredLastWeekData.map(row => row[1]); // Assuming "Unique Identifier w Repository & Port" is in column 2 (index 1)
     
-    // Log comparison start
-    Logger.log('Starting comparison between Detail Data and Last Week Data...');
-    
-    // Loop through Detail Data and compare with Last Week Data
-    for (let i = 0; i < vulDataDetail.length; i++) {
-      const pluginName = vulDataDetail[i][0]; // Assuming "Plugin name" is in column 1 (index 0)
-      const uniqueId = vulDataDetail[i][1];  // Assuming "Unique Identifier w Repository & Port" is in column 2 (index 1)
+    // Step 5: Compare and categorize as old or new data
+    filteredDetailData.forEach(function(row) {
+      const pluginName = row[0];  // Plugin name
+      const uniqueId = row[1];  // Unique Identifier w Repository & Port
       
       if (lastWeekUniqueIds.includes(uniqueId)) {
         // If it exists in Last Week Data, it's an old finding
-        oldData.push(vulDataDetail[i]); // Push the entire row (all columns) into the old data array
+        oldData.push(row); // Push the entire row into the old data array
       } else {
         // If it doesn't exist in Last Week Data, it's a new finding
-        newData.push(vulDataDetail[i]); // Push the entire row (all columns) into the new data array
+        newData.push(row); // Push the entire row into the new data array
       }
-    }
+    });
     
     // Log progress
     Logger.log('Comparison complete for vulnerability: ' + vul);
     
-    // Paste old data into the "Old" sheet
+    // Step 6: Paste old data into the "Old" sheet
     if (oldData.length > 0) {
       oldSheet.getRange(2, 1, oldData.length, oldData[0].length).setValues(oldData);
       Logger.log('Pasted old data into the "Old" sheet.');
     }
     
-    // Paste new data into the "New" sheet
+    // Step 7: Paste new data into the "New" sheet
     if (newData.length > 0) {
       newSheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
       Logger.log('Pasted new data into the "New" sheet.');
     }
     
-    // Move the created sheet to the specified folder in Google Drive
+    // Step 8: Move the created sheet to the specified folder in Google Drive
     const file = DriveApp.getFileById(newVulSheet.getId());
     folder.createFile(file); // Move the file to the specific folder
     file.setTrashed(true); // Delete the original file from the root folder
