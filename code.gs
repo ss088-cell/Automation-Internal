@@ -32,7 +32,7 @@ function compareAndCreateVulReports() {
   const currentDate = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
   Logger.log('Current date: ' + currentDate);
   
-  // List of 30+ vulnerabilities (replace with your actual list of vulnerabilities)
+  // List of vulnerabilities (replace with your actual list of vulnerabilities)
   const vulnerabilities = [
     "kb", "vul1", "vul2", "vul3", "vul4", "vul5", "vul6", "vul7", "vul8", "vul9",
     "vul10", "vul11", "vul12", "vul13", "vul14", "vul15", "vul16", "vul17", "vul18", "vul19",
@@ -44,7 +44,7 @@ function compareAndCreateVulReports() {
   vulnerabilities.forEach(function(vul) {
     Logger.log('Processing vulnerability: ' + vul);
     
-    // Filter data for the current vulnerability (e.g., "kb", "vul1", "vul2", etc.)
+    // Filter data for the current vulnerability (e.g., "kb", "vul1", "vul2", etc.) in 'Detail Data'
     const vulDataDetail = dataDetailData.filter(row => row[0].includes(vul)); // Search for common word in Plugin Name column (index 0)
     const vulDataLastWeek = dataLastWeekData.filter(row => row[0].includes(vul)); // Same for Last Week Data
     
@@ -59,9 +59,9 @@ function compareAndCreateVulReports() {
     const oldSheet = newVulSheet.insertSheet('Old');
     const newSheet = newVulSheet.insertSheet('New');
     
-    // Add headers to the new sheets
-    oldSheet.appendRow(['Plugin Name', 'Unique Identifier w Repository & Port', 'Other Columns...']);
-    newSheet.appendRow(['Plugin Name', 'Unique Identifier w Repository & Port', 'Other Columns...']);
+    // Add headers to the new sheets (assuming same headers as in the Detail Data sheet)
+    oldSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
+    newSheet.appendRow(dataDetailData[0]);  // Use headers from the Detail Data
     
     const oldData = [];
     const newData = [];
@@ -79,10 +79,10 @@ function compareAndCreateVulReports() {
       
       if (lastWeekUniqueIds.includes(uniqueId)) {
         // If it exists in Last Week Data, it's an old finding
-        oldData.push([pluginName, uniqueId, ...vulDataDetail[i].slice(2)]);
+        oldData.push(vulDataDetail[i]); // Push the entire row (all columns) into the old data array
       } else {
         // If it doesn't exist in Last Week Data, it's a new finding
-        newData.push([pluginName, uniqueId, ...vulDataDetail[i].slice(2)]);
+        newData.push(vulDataDetail[i]); // Push the entire row (all columns) into the new data array
       }
     }
     
